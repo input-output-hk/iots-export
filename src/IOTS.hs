@@ -57,7 +57,7 @@ import           Type.Reflection              (SomeTypeRep (SomeTypeRep),
 import qualified Type.Reflection              as R
 
 {-# ANN module ("HLint: ignore Avoid restricted function" :: Text)
-         #-}
+        #-}
 
 preamble :: Doc
 preamble = "import * as t from 'io-ts'"
