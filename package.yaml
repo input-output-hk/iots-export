@@ -29,8 +29,18 @@ dependencies:
 - text
 - wl-pprint-text
 
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Wincomplete-uni-patterns
+  - -Wincomplete-record-updates
+  - -Wmissing-import-lists
+  - -Wredundant-constraints
+
 library:
   source-dirs: src
+  exposed-modules:
+    - IOTS
 
 tests:
   iots-export-test:
