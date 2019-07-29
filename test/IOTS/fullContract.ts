@@ -12,18 +12,22 @@ const TokenName = t.type({
 
 // IOTSSpec.AssocMap
 const AssocMapTokenNameInteger = t.type({
-    unMap: t.array(t.tuple([
-        TokenName,
-        t.Int
-    ]))
+    unMap: t.array(
+        t.tuple([
+            TokenName,
+            t.Int
+        ])
+    )
 });
 
 // IOTSSpec.AssocMap
 const AssocMapCurrencySymbolAssocMapTokenNameInteger = t.type({
-    unMap: t.array(t.tuple([
-        CurrencySymbol,
-        AssocMapTokenNameInteger
-    ]))
+    unMap: t.array(
+        t.tuple([
+            CurrencySymbol,
+            AssocMapTokenNameInteger
+        ])
+    )
 });
 
 // IOTSSpec.Value
@@ -67,7 +71,9 @@ const FunctionAArgB = t.union([
 
 const FunctionAArgC = IntervalSlot;
 
-const FunctionAArgD = t.array(VestingTranche);
+const FunctionAArgD = t.array(
+    VestingTranche
+);
 
 const FunctionAArgReturn = t.string;
 
@@ -80,7 +86,9 @@ type FunctionA = (
 
 const FunctionBArgA = IntervalSlot;
 
-const FunctionBArgB = t.array(CurrencySymbol);
+const FunctionBArgB = t.array(
+    CurrencySymbol
+);
 
 const FunctionBArgReturn = t.string;
 

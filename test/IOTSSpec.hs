@@ -1,8 +1,7 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveAnyClass      #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE DeriveAnyClass   #-}
+{-# LANGUAGE DeriveGeneric    #-}
+{-# LANGUAGE TypeApplications #-}
 
 module IOTSSpec where
 
@@ -14,10 +13,9 @@ import           Data.Proxy                (Proxy (Proxy))
 import           Data.Text                 (Text)
 import qualified Data.Text                 as Text
 import qualified Data.Text.IO              as Text
-import           GHC.Generics              (Generic, Generic1)
-import           IOTS                      (HList (HCons, HNil), HasReps,
-                                            MyTypeable, Tagged (Tagged), export,
-                                            render)
+import           GHC.Generics              (Generic)
+import           IOTS                      (HList (HCons, HNil), IotsExportable,
+                                            IotsType, Tagged (Tagged), export)
 import           Paths_iots_export         (getDataFileName)
 import           Test.Hspec                (Spec, describe, it)
 import           Test.HUnit                (Assertion, assertBool)
@@ -75,11 +73,10 @@ toIOTSSpec =
            (HCons (Tagged @"functionB" functionB) HNil))
         "test/IOTS/fullContract.ts"
 
-exportsAs :: (MyTypeable a) => a -> FilePath -> IO ()
+exportsAs :: (IotsExportable a) => a -> FilePath -> IO ()
 exportsAs exportable filename = do
   file <- Text.readFile =<< getDataFileName filename
-  let exported = render $ export exportable
-  exported `shouldBePrettyDiff` file
+  export exportable `shouldBePrettyDiff` file
   where
     shouldBePrettyDiff :: Text -> Text -> Assertion
     shouldBePrettyDiff a b =
@@ -92,23 +89,20 @@ exportsAs exportable filename = do
 
 data SingleFieldless =
   VeryDull
-  deriving (Show, Eq, Ord, Generic)
-  deriving anyclass (HasReps)
+  deriving (Show, Eq, Ord, Generic, IotsType)
 
 data SimpleSum
   = This
   | That
   | TheOther
-  deriving (Show, Eq, Ord, Generic)
-  deriving anyclass (HasReps)
+  deriving (Show, Eq, Ord, Generic, IotsType)
 
 data User =
   User
     { userId :: Int
     , name   :: String
     }
-  deriving (Show, Eq, Generic)
-  deriving anyclass (HasReps)
+  deriving (Show, Eq, Generic, IotsType)
 
 data Response a
   = UnknownError Int Text
@@ -119,51 +113,44 @@ data Response a
       }
   | EmptyResponse
   | Response a
-  deriving (Show, Eq, Ord, Generic)
-  deriving anyclass (HasReps)
+  deriving (Show, Eq, Ord, Generic, IotsType)
 
 newtype Slot =
   Slot
     { getSlot :: Integer
     }
-  deriving (Show, Eq, Ord, Generic)
-  deriving anyclass (HasReps)
+  deriving (Show, Eq, Ord, Generic, IotsType)
 
 newtype CurrencySymbol =
   CurrencySymbol
     { unCurrencySymbol :: Text
     }
-  deriving (Show, Eq, Ord, Generic)
-  deriving anyclass (HasReps)
+  deriving (Show, Eq, Ord, Generic, IotsType)
 
 newtype TokenName =
   TokenName
     { unTokenName :: Text
     }
-  deriving (Show, Eq, Ord, Generic)
-  deriving anyclass (HasReps)
+  deriving (Show, Eq, Ord, Generic, IotsType)
 
 newtype AssocMap k v =
   AssocMap
     { unMap :: [(k, v)]
     }
-  deriving (Show, Eq, Ord, Generic, Generic1)
-  deriving anyclass (HasReps)
+  deriving (Show, Eq, Ord, Generic, IotsType)
 
 newtype Value =
   Value
     { getValue :: AssocMap CurrencySymbol (AssocMap TokenName Integer)
     }
-  deriving (Show, Eq, Ord, Generic)
-  deriving anyclass (HasReps)
+  deriving (Show, Eq, Ord, Generic, IotsType)
 
 data Interval a =
   Interval
     { ivFrom :: Maybe a
     , ivTo   :: Maybe a
     }
-  deriving (Show, Eq, Ord, Generic, Generic1)
-  deriving anyclass (HasReps)
+  deriving (Show, Eq, Ord, Generic, IotsType)
 
 data VestingTranche =
   VestingTranche
@@ -171,5 +158,4 @@ data VestingTranche =
     , vestingTrancheAmount :: Value
     , validity             :: Interval Slot
     }
-  deriving (Show, Eq, Generic)
-  deriving anyclass (HasReps)
+  deriving (Show, Eq, Generic, IotsType)

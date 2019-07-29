@@ -6,7 +6,9 @@ const User = t.type({
     name: t.string
 });
 
-const ListFunctionArgA = t.array(User);
+const ListFunctionArgA = t.array(
+    User
+);
 
 const ListFunctionArgReturn = t.string;
 

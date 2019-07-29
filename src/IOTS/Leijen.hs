@@ -7,6 +7,7 @@ import           Text.PrettyPrint.Leijen.Text (Doc, braces, brackets, comma,
                                                linebreak, parens, punctuate,
                                                renderPretty, textStrict, vsep)
 
+-- | `Doc` to `Text` with reasonable defaults for pretty printing.
 render :: Doc -> Text
 render = displayTStrict . renderPretty 0.8 200
 
