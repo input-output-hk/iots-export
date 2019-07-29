@@ -16,5 +16,5 @@ Alpha. Use at your own risk.
 
 # Similar Projects
 
-[PureScript Bridge](http://hackage.haskell.org/package/purescript-bridge) for exporting Haskell to PureScript.
-[Elm Bridge](http://hackage.haskell.org/package/elm-bridge) and [Elm Export](https://github.com/krisajenkins/elm-export) for exporting Haskell to Elm.
+* [PureScript Bridge](http://hackage.haskell.org/package/purescript-bridge) for exporting Haskell to PureScript.
+* [Elm Bridge](http://hackage.haskell.org/package/elm-bridge) and [Elm Export](https://github.com/krisajenkins/elm-export) for exporting Haskell to Elm.
