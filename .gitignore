@@ -1,3 +1,4 @@
 .stack-work/
 iots-export.cabal
+test/IOTS/*.js
 *~
