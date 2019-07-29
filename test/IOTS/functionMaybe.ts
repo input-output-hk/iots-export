@@ -5,13 +5,13 @@ const Slot = t.type({
     getSlot: t.Int
 });
 
-const SomeFunctionArgA = t.union([
+const MaybeFunctionArgA = t.union([
     Slot,
     t.null
 ]);
 
-const SomeFunctionArgReturn = t.string;
+const MaybeFunctionArgReturn = t.string;
 
-type SomeFunction = (
-    a: t.TypeOf<typeof SomeFunctionArgA>
-) => t.TypeOf<typeof SomeFunctionArgReturn>;
+type MaybeFunction = (
+    a: t.TypeOf<typeof MaybeFunctionArgA>
+) => t.TypeOf<typeof MaybeFunctionArgReturn>;

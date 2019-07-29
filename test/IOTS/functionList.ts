@@ -6,10 +6,10 @@ const User = t.type({
     name: t.string
 });
 
-const SomeFunctionArgA = t.array(User);
+const ListFunctionArgA = t.array(User);
 
-const SomeFunctionArgReturn = t.string;
+const ListFunctionArgReturn = t.string;
 
-type SomeFunction = (
-    a: t.TypeOf<typeof SomeFunctionArgA>
-) => t.TypeOf<typeof SomeFunctionArgReturn>;
+type ListFunction = (
+    a: t.TypeOf<typeof ListFunctionArgA>
+) => t.TypeOf<typeof ListFunctionArgReturn>;

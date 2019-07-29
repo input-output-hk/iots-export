@@ -77,3 +77,14 @@ type FunctionA = (
     c: t.TypeOf<typeof FunctionAArgC>,
     d: t.TypeOf<typeof FunctionAArgD>
 ) => t.TypeOf<typeof FunctionAArgReturn>;
+
+const FunctionBArgA = IntervalSlot;
+
+const FunctionBArgB = t.array(CurrencySymbol);
+
+const FunctionBArgReturn = t.string;
+
+type FunctionB = (
+    a: t.TypeOf<typeof FunctionBArgA>,
+    b: t.TypeOf<typeof FunctionBArgB>
+) => t.TypeOf<typeof FunctionBArgReturn>;

@@ -22,10 +22,14 @@ module IOTS
   , MyTypeable
   , render
   , export
+  , HList(HNil, HCons)
+  , Tagged(Tagged)
   ) where
 
-import           Control.Monad.State          (State, evalState, gets, modify)
+import           Control.Monad.State          (State, evalState, foldM, gets,
+                                               modify)
 import           Data.Foldable                (fold, toList)
+import           Data.Kind                    (Type)
 import           Data.List.NonEmpty           (NonEmpty)
 import qualified Data.List.NonEmpty           as NEL
 import           Data.Map                     (Map)
@@ -35,15 +39,14 @@ import           Data.Set                     (Set)
 import qualified Data.Set                     as Set
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
-import           Data.Tree                    (Tree (Node), rootLabel,
-                                               subForest)
-import           GHC.Exts                     (RuntimeRep, TYPE)
+import           Data.Tree                    (Forest, Tree (Node), rootLabel)
 import           GHC.Generics                 ((:*:) ((:*:)), (:+:), C1,
                                                Constructor, D1, Datatype,
                                                Generic, M1 (M1), Rec0, Rep, S1,
                                                Selector, U1, conIsRecord,
                                                conName, selName)
 import qualified GHC.Generics                 as Generics
+import           GHC.TypeLits                 (KnownSymbol, symbolVal)
 import           IOTS.Leijen                  (jsArray, jsObject, jsParams,
                                                lowerFirst, render, stringDoc,
                                                upperFirst)
@@ -70,8 +73,10 @@ export _ = vsep . punctuate linebreak . toList $ preamble <| definitions
   where
     definitions :: Seq Doc
     definitions =
-      flip evalState mempty . depthfirstM appendUnseenDefinitions mempty $
-      flip evalState mempty . treeWalk $ myTypeRep @a
+      flip evalState mempty .
+      foldM (depthfirstM appendUnseenDefinitions) mempty .
+      flip evalState mempty . treeWalk $
+      myTypeRep @a
     appendUnseenDefinitions ::
          Seq Doc -> Iots -> State (Set SomeTypeRep) (Seq Doc)
     appendUnseenDefinitions acc Iots {..} = do
@@ -84,19 +89,21 @@ export _ = vsep . punctuate linebreak . toList $ preamble <| definitions
 
 ------------------------------------------------------------
 iotsReps :: forall a. MyTypeRep a -> State Visited (NonEmpty (Tree Iots))
-iotsReps Atom          = pure <$> typeReps @a
-iotsReps (Fun from to) = (<>) <$> iotsReps from <*> iotsReps to
+iotsReps Atom           = pure <$> typeReps @a
+iotsReps (Group x xs)   = (<>) <$> iotsReps x <*> iotsReps xs
+iotsReps (Fun from to)  = (<>) <$> iotsReps from <*> iotsReps to
+iotsReps (NamedFun _ x) = iotsReps x
 
-treeWalk :: forall a. MyTypeRep a -> State Visited (Tree Iots)
-treeWalk Atom = typeReps @a
-treeWalk rep@(Fun from to) = do
-  lefts <- treeWalk from
-  rights <- treeWalk to
+treeWalk :: forall a. MyTypeRep a -> State Visited (Forest Iots)
+treeWalk Atom = pure <$> typeReps @a
+treeWalk (Group x xs) = mappend <$> treeWalk x <*> treeWalk xs
+treeWalk (Fun from to) = mappend <$> treeWalk from <*> treeWalk to
+treeWalk rep@(NamedFun functionName fun) = do
+  children <- treeWalk fun
   childReps <- iotsReps rep
-  let children = lefts : subForest rights
-      inputArguments = NEL.init childReps
+  let inputArguments = NEL.init childReps
       outputArgument = NEL.last childReps
-      functionBinding = textStrict (upperFirst "someFunction") -- TODO Wrong
+      functionBinding = textStrict (upperFirst functionName)
       boundParameters = withParameterLabels boundParameter
       labelledParameters = withParameterLabels labelledParameter
       boundParameter name r =
@@ -121,37 +128,62 @@ treeWalk rep@(Fun from to) = do
           , [boundParameter "Return" outputArgument]
           , ["type" <+> functionBinding <+> "=" <+> typeSignature <> ";"]
           ]
-  pure $ Node (Iots {..}) children
+  pure [Node (Iots {..}) children]
 
 withParameterLabels :: (Text -> Tree Iots -> Doc) -> [Tree Iots] -> [Doc]
 withParameterLabels f = zipWith f (Text.singleton <$> ['A' .. 'Z'])
 
 ------------------------------------------------------------
--- Create our own universe of types.
-data MyTypeRep (a :: k) where
-  Atom
-    :: forall (a :: *). (Typeable a, HasReps a)
-    => MyTypeRep a
-  Fun
-    :: forall (r1 :: RuntimeRep) (r2 :: RuntimeRep) (a :: TYPE r1) (b :: TYPE r2).
-       Typeable (a -> b)
-    => MyTypeRep a
-    -> MyTypeRep b
-    -> MyTypeRep (a -> b)
+data MyTypeRep a where
+  Atom :: HasReps a => MyTypeRep a
+  Group :: MyTypeRep a -> MyTypeRep (HList bs) -> MyTypeRep (HList (a ': bs))
+  Fun :: Typeable (a -> b) => MyTypeRep a -> MyTypeRep b -> MyTypeRep (a -> b)
+  NamedFun :: Typeable f => Text -> MyTypeRep (a -> b) -> MyTypeRep f
+
+data HList (ts :: [Type]) where
+  HNil :: HList '[]
+  HCons :: t -> HList ts -> HList (t ': ts)
+  deriving (Typeable)
+
+instance HasReps (HList '[]) where
+  typeReps = do
+    let iotsRep = someTypeRep (Proxy @(HList '[]))
+        iotsRef = ""
+        iotsOutput = False
+    pure $ Node (Iots {..}) []
+
+instance (HasReps t, HasReps (HList ts)) => HasReps (HList (t ': ts)) where
+  typeReps = do
+    t <- typeReps @t
+    (Node r ts) <- typeReps @(HList ts)
+    pure $ Node r (t : ts)
+
+------------------------------------------------------------
+-- | We could take this from the `tagged` package, but I really don't think it's worth it for the sake of one newtype.
+newtype Tagged a b =
+  Tagged b
 
 ------------------------------------------------------------
 class MyTypeable a where
   myTypeRep :: MyTypeRep a
 
-instance forall (a :: *). (Typeable a, HasReps a) => MyTypeable a where
-  myTypeRep = Atom @a
+instance {-# OVERLAPPABLE #-} HasReps a => MyTypeable a where
+  myTypeRep = Atom
 
-instance {-# OVERLAPPING #-} forall a b. ( MyTypeable a
-                                         , MyTypeable b
-                                         , Typeable (a -> b)
-                             ) =>
-                             MyTypeable ((->) a b) where
+instance MyTypeable (HList '[]) where
+  myTypeRep = Atom
+
+instance (MyTypeable t, MyTypeable (HList ts)) =>
+         MyTypeable (HList (t ': ts)) where
+  myTypeRep = Group myTypeRep myTypeRep
+
+instance (MyTypeable a, MyTypeable b, Typeable (a -> b)) =>
+         MyTypeable ((->) a b) where
   myTypeRep = Fun myTypeRep myTypeRep
+
+instance (KnownSymbol s, MyTypeable (a -> b), Typeable (a -> b)) =>
+         MyTypeable (Tagged s (a -> b)) where
+  myTypeRep = NamedFun (Text.pack (symbolVal (Proxy @s))) (myTypeRep @(a -> b))
 
 ------------------------------------------------------------
 class HasReps a where
@@ -231,31 +263,20 @@ instance (HasReps a, Typeable a) => HasReps (Maybe a) where
     pure $ Node (Iots {..}) children
 
 ------------------------------------------------------------
-type family IsSpecialListElement a where
-  IsSpecialListElement Char = 'True
-  IsSpecialListElement a = 'False
-
-instance (ListTypeReps flag a, flag ~ IsSpecialListElement a) =>
-         HasReps [a] where
-  typeReps = listTypeReps @flag @a
-
-class ListTypeReps flag a where
-  listTypeReps :: State Visited (Tree Iots)
-
-instance ListTypeReps 'True Char where
-  listTypeReps = pure $ Node (Iots {..}) []
-    where
-      iotsRep = someTypeRep (Proxy @String)
-      iotsOutput = False
-      iotsRef = "t.string"
-
-instance (HasReps a, Typeable a) => ListTypeReps 'False a where
-  listTypeReps = do
+instance {-# OVERLAPPABLE #-} (HasReps a, Typeable a) => HasReps [a] where
+  typeReps = do
     child <- typeReps @a
     let iotsRep = someTypeRep (Proxy @[a])
         iotsOutput = False
         iotsRef = "t.array" <> parens (toRef child)
     pure $ Node (Iots {..}) [child]
+
+instance HasReps [Char] where
+  typeReps = pure $ Node (Iots {..}) []
+    where
+      iotsRep = someTypeRep (Proxy @String)
+      iotsOutput = False
+      iotsRef = "t.string"
 
 ------------------------------------------------------------
 class GenericHasReps f where

@@ -36,6 +36,7 @@ ghc-options:
   - -Wincomplete-record-updates
   - -Wmissing-import-lists
   - -Wredundant-constraints
+  - -fprint-potential-instances
 
 library:
   source-dirs: src

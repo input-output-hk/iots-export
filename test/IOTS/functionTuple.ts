@@ -10,13 +10,13 @@ const TokenName = t.type({
     unTokenName: t.string
 });
 
-const SomeFunctionArgA = t.tuple([
+const TupleFunctionArgA = t.tuple([
     CurrencySymbol,
     TokenName
 ]);
 
-const SomeFunctionArgReturn = t.string;
+const TupleFunctionArgReturn = t.string;
 
-type SomeFunction = (
-    a: t.TypeOf<typeof SomeFunctionArgA>
-) => t.TypeOf<typeof SomeFunctionArgReturn>;
+type TupleFunction = (
+    a: t.TypeOf<typeof TupleFunctionArgA>
+) => t.TypeOf<typeof TupleFunctionArgReturn>;
