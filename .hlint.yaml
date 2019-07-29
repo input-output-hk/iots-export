@@ -58,3 +58,15 @@
 
 # To generate a suitable file for HLint do:
 # $ hlint --default > .hlint.yaml
+
+# hints found in src/IOTS.hs
+- warn: {lhs: "\"import * as t from 'io-ts'\"", rhs: "preamble"}
+
+# hints found in src/IOTS/Leijen.hs
+- warn: {lhs: "displayTStrict (renderPretty 0.8 200 a)", rhs: "render a"}
+- warn: {lhs: "textStrict (Text.pack a)", rhs: "stringDoc a"}
+- warn: {lhs: "inset ((vsep . punctuate comma) a)", rhs: "indentedList a"}
+- warn: {lhs: "linebreak <> indent 4 a <> linebreak", rhs: "inset a"}
+- warn: {lhs: "brackets (indentedList a)", rhs: "jsArray a"}
+- warn: {lhs: "braces (indentedList a)", rhs: "jsObject a"}
+- warn: {lhs: "parens (indentedList a)", rhs: "jsParams a"}
