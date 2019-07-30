@@ -101,7 +101,7 @@ toRef = iotsRef . rootLabel
 
 ------------------------------------------------------------
 preamble :: Doc
-preamble = "import * as t from 'io-ts'"
+preamble = "import * as t from 'io-ts';"
 
 -- | Render out a type, function or 'HList' of functions as an IOTS-compatible definition file.
 --
