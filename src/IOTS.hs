@@ -105,15 +105,22 @@ preamble = "import * as t from 'io-ts'"
 
 -- | Render out a type, function or 'HList' of functions as an IOTS-compatible definition file.
 --
--- All the subtypes needed for compilation will also be exported, as long as they are all 'IotsExportable'. Example usage:
+-- All the subtypes needed for compilation will also be exported, as long as they are all 'IotsExportable'.
+--
+-- Example usage:
 --
 -- @
 --    iotsDefinition :: Text
 --    iotsDefinition = export (Tagged @"maybeFunction" f)
 --      where
---        f :: Maybe Int -> String
---        f _ = "Anything."
+--        f :: Maybe User -> String
+--        f _ = "foo"
 -- @
+--
+-- Assuming that 'User' implements 'IotsType', then `iotsDefinition`
+-- will contain an IOTS script defining 'User' and a function named
+-- 'maybeFunction'. Note that you do not need to export 'User'
+-- explicitly.
 export ::
      forall a. IotsExportable a
   => a
