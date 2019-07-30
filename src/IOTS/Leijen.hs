@@ -1,7 +1,14 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
+
 module IOTS.Leijen where
 
+import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
+import           GHC.TypeLits                 (KnownSymbol, symbolVal)
 import           Text.PrettyPrint.Leijen.Text (Doc, braces, brackets, comma,
                                                displayTStrict, indent,
                                                linebreak, parens, punctuate,
@@ -13,6 +20,9 @@ render = displayTStrict . renderPretty 0.8 200
 
 stringDoc :: String -> Doc
 stringDoc = textStrict . Text.pack
+
+symbol :: forall s. KnownSymbol s => Doc
+symbol = stringDoc . symbolVal $ Proxy @s
 
 indentedList :: [Doc] -> Doc
 indentedList = inset . vsep . punctuate comma

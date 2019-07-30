@@ -44,7 +44,7 @@ import qualified GHC.Generics                 as Generics
 import           GHC.TypeLits                 (KnownSymbol, symbolVal)
 import           IOTS.Leijen                  (jsArray, jsObject, jsParams,
                                                lowerFirst, render, stringDoc,
-                                               upperFirst)
+                                               symbol, upperFirst)
 import           IOTS.Tree                    (depthfirstM)
 import           Text.PrettyPrint.Leijen.Text (Doc, angles, braces, dquotes,
                                                linebreak, parens, punctuate,
@@ -331,6 +331,12 @@ instance IotsType [Char] where
       iotsRep = someTypeRep (Proxy @String)
       iotsOutput = False
       iotsRef = "t.string"
+
+-- | Tagging an IOTS Type replaces its ref name.
+instance (KnownSymbol s, IotsType a) => IotsType (Tagged s a) where
+  iotsDefinition = fmap (fmap rename) <$> iotsDefinition @a
+    where
+      rename def = def {iotsRef = symbol @s}
 
 ------------------------------------------------------------
 instance IotsType (HList '[]) where
