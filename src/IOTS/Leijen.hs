@@ -9,10 +9,8 @@ import           Data.Proxy                   (Proxy (Proxy))
 import           Data.Text                    (Text)
 import qualified Data.Text                    as Text
 import           GHC.TypeLits                 (KnownSymbol, symbolVal)
-import           Text.PrettyPrint.Leijen.Text (Doc, braces, brackets, comma,
-                                               displayTStrict, indent,
-                                               linebreak, parens, punctuate,
-                                               renderPretty, textStrict, vsep)
+import           Text.PrettyPrint.Leijen.Text (Doc, braces, brackets, comma, displayTStrict, indent, linebreak, parens,
+                                               punctuate, renderPretty, textStrict, vsep)
 
 -- | `Doc` to `Text` with reasonable defaults for pretty printing.
 render :: Doc -> Text

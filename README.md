@@ -8,6 +8,14 @@ TypeScript-compatible way. This library lets you export Haskell types
 and functions as IOTS. So, your backend Haskell team can share
 structure with the TypeScript frontend team.
 
+# Building
+
+In the simplest case:
+
+```sh
+nix-shell --run 'stack test'
+```
+
 # Status
 
 Alpha. Use at your own risk.
